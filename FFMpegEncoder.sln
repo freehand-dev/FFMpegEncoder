@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32825.248
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFMpegEncoder", "src\FFMpegEncoder\FFMpegEncoder.csproj", "{F7BC11B7-B7E1-42E7-A936-27469A33199E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFMpegCore.Extensions", "src\FFMpegCore.Extensions\FFMpegCore.Extensions.csproj", "{15A68EA0-3EA1-4F05-AE85-9E50266D7162}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F7BC11B7-B7E1-42E7-A936-27469A33199E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7BC11B7-B7E1-42E7-A936-27469A33199E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7BC11B7-B7E1-42E7-A936-27469A33199E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7BC11B7-B7E1-42E7-A936-27469A33199E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15A68EA0-3EA1-4F05-AE85-9E50266D7162}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15A68EA0-3EA1-4F05-AE85-9E50266D7162}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15A68EA0-3EA1-4F05-AE85-9E50266D7162}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15A68EA0-3EA1-4F05-AE85-9E50266D7162}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2A08CCD6-CE0A-477D-821E-FA50A8CC65C2}
+	EndGlobalSection
+EndGlobal

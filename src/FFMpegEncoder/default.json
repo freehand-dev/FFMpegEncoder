@@ -1,0 +1,114 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+    "ffmpeg": {
+	  "LogLevel": 40,
+	  "Raw": "",
+      "Input": {
+        "Device": "decklink",
+        "Name": "DeckLink Duo (4)",
+        "Channels": 8,
+        "Format": "Hi50",
+        "RawFormat": "uyvy422",
+        "VideoInput": "sdi",
+        "AudioInput": "embedded",
+        "DrawBars": false,
+        "QueueSize": 1073741824
+      },
+	  "FilterComplex": [
+		"[0:v]yadif",
+        "[0:a]channelmap=map=0|1:stereo[ch1]",
+        "[0:a]channelmap=map=2|3:stereo[ch2]"
+      ],
+      "Maps": [
+        "0:v",
+        "[ch1]",
+        "[ch2]"
+      ],
+      "Encoders": [
+        {
+          "Codec": "libx264",
+          "Bitrate": 8000,
+          "Preset": "faster",
+		  "Profile": "high",
+		  "Level": "4.0",
+		  "Flags": [
+			  "+ilme",
+			  "+ildct",
+			  "+cgop"
+		  ],
+		  "CustomArguments": [
+			{ "Name" : "minrate", 		"Value": "8000k" },
+			{ "Name" : "maxrate", 		"Value": "8000k" },
+			{ "Name" : "bufsize", 		"Value": "4000k" },
+			{ "Name" : "pix_fmt", 		"Value": "yuv420p" },
+			{ "Name" : "aspect", 		"Value": "16:9" },
+			{ "Name" : "x264-params", 	"Value": "force-cfr=1:nal-hrd=cbr" },
+			{ "Name" : "top", 			"Value": 1 }
+		  ]
+        },
+        {
+          "Codec": "libfdk_aac",
+          "Bitrate": 192,
+          "CustomArguments": [
+
+          ]
+        },
+		{
+          "Codec": "libfdk_aac",
+          "Bitrate": 192,
+          "CustomArguments": [
+
+          ]
+        }
+      ],
+      "BitstreamFilter": {
+        "video": [ "h264_mp4toannexb" ],
+        "audio": []
+      },
+      "GlobalOptions": [
+	  	{ "Name" : "flush_packets", "Value": 0 },
+		{ "Name" : "rtbufsize", 	"Value": "2000M" }
+      ],
+      "Muxer": {
+        "mpegts": {
+		  "TransportStreamId": 1,
+		  "OriginalNetworkId": 1,
+		  "ServiceId": 1,		  
+          "StartPid": 336,
+		  "PmtStartPid": 4096,
+          "PcrPeriod": 20,
+          "PatPeriod": "0.10",
+          "SdtPeriod": "0.25",
+		  "NitPeriod": "0.5",
+		  "MuxRate": 9000,
+          "Metadata": {
+            "service_provider": "ES",
+            "service_name": "OBVan",
+            "title": "HappyBird"
+          },
+          "Flags": [
+            "+pat_pmt_at_frames",
+            "+system_b",
+			"+nit"
+          ],
+          "Output": {
+            "Protocol": "srt",
+            "Address": "46.164.131.218",
+            "Port": 9103,
+			"Options": [
+				{ "Name" : "ipttl", 		"Value": 15 },
+				{ "Name" : "latency", 		"Value": 3000 },	
+				{ "Name" : "mode", 			"Value": "caller" },
+				{ "Name" : "payload_size", 	"Value": 1456 },
+				{ "Name" : "transtype", 	"Value": "live" }					
+			]
+          }
+        }
+      }
+    }
+}
