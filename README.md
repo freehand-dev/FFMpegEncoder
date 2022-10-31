@@ -1,6 +1,8 @@
 ﻿# FFMpegEncoder
 > FFMpegEncoder - windows service for wrapper ffmpeg
 
+[![.NET](https://github.com/freehand-dev/FFMpegEncoder/actions/workflows/dotnet.yml/badge.svg)](https://github.com/freehand-dev/FFMpegEncoder/actions/workflows/dotnet.yml)
+
 ## Compile and install
 Once you have installed all the dependencies, get the code:
  ```powershell
