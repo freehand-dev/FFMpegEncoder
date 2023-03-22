@@ -32,7 +32,7 @@
         {
           "Codec": "libx264",
           "Bitrate": 8000,
-          "Preset": "faster",
+          "Preset": "medium",
 		  "Profile": "high",
 		  "Level": "4.0",
 		  "Flags": [
@@ -46,9 +46,20 @@
 			{ "Name" : "bufsize", 		"Value": "700k" },
 			{ "Name" : "pix_fmt", 		"Value": "yuv420p" },
 			{ "Name" : "aspect", 		"Value": "16:9" },
-			{ "Name" : "x264-params", 	"Value": "nal-hrd=cbr" },
-			{ "Name" : "top", 			"Value": 1 }
-		  ],
+			{ "Name" : "r", 			"Value": 25 },
+			{ "Name" : "x264-params", 	"Value": "force-cfr=1:nal-hrd=cbr" },
+			{ "Name" : "g", 			"Value": 250 },
+			{ "Name" : "top", 			"Value": 1 },
+			{ "Name" : "trellis", 		"Value": 1 },
+			{ "Name" : "me_method", 	"Value": "umh" },
+			{ "Name" : "sc_threshold", 	"Value": 40 },
+			{ "Name" : "keyint_min", 	"Value": 25 },
+			{ "Name" : "bf", 			"Value": 16 },
+			{ "Name" : "qmin", 			"Value": 10 },
+			{ "Name" : "qmax", 			"Value": 51 },
+			{ "Name" : "qdiff", 		"Value": 4 }
+		  ]
+		},
 		{
           "Codec": "libfdk_aac",
           "Bitrate": 192,

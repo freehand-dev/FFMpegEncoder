@@ -48,7 +48,8 @@
 			{ "Name" : "aspect", 		"Value": "16:9" },
 			{ "Name" : "x264-params", 	"Value": "nal-hrd=cbr" },
 			{ "Name" : "top", 			"Value": 1 }
-		  ],
+		  ]
+        },
 		{
           "Codec": "libfdk_aac",
           "Bitrate": 192,

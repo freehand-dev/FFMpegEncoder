@@ -4,7 +4,7 @@ using FFMpegCore.Arguments;
 using FFMpegCore.Extensions;
 using FFMpegCore.Enums;
 using Microsoft.Extensions.Options;
-using sdi2srt_ffmpeg.Models;
+using FFMpegEncoder.Models;
 using System.Threading.Channels;
 using System.Xml.Linq;
 using System.Linq;
@@ -18,19 +18,37 @@ using Instances;
 using FFMpegCore.Exceptions;
 using Microsoft.VisualBasic;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
+using System.Text.RegularExpressions;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Diagnostics.Metrics;
+using FFMpegEncoder.Infrastructure;
+using FFMpegEncoder.Infrastructure.Metrics;
 
-namespace sdi2srt_ffmpeg.Services
+namespace FFMpegEncoder.Services
 {
+    /// <summary>
+    /// -loglevel verbose -channels 8 -format_code Hi50 -raw_format uyvy422 -video_input sdi -audio_input embedded -draw_bars 0 -queue_size 1073741824 -f decklink -i "DeckLink Duo (4)" 
+    /// -filter_complex "[0:a]channelmap=map=0|1:stereo[ch1];[0:a] channelmap=map=2|3:stereo[ch2]" -map 0:v -map [ch1] -map [ch2] 
+    /// -c:0 libx264 -b:0 8000k -preset:0 faster -profile:0 high -level:0 4.0 -minrate:0 8000k -maxrate:0 8000k -bufsize:0 700k -pix_fmt:0 yuv420p -aspect:0 16:9 -x264-params:0 nal-hrd=cbr -top:0 1 -flags:0 +ilme+ildct+cgop 
+    /// -c:1 libfdk_aac -b:1 192k -c:2 libfdk_aac -b:2 192k 
+    /// -bsf:v h264_mp4toannexb -flush_packets 0 -rtbufsize 2000M 
+    /// -f mpegts -mpegts_transport_stream_id 1 -mpegts_original_network_id 1 -mpegts_service_id 1 -muxrate 9000k -mpegts_start_pid 336 -mpegts_pmt_start_pid 4096 -pcr_period 20 -pat_period 0.10 -sdt_period 0.25 -nit_period 0.5 -metadata service_name=OBVan -metadata service_provider=ES -metadata title=BabyBird -mpegts_flags +pat_pmt_at_frames+system_b+nit 
+    /// "srt://193.239.153.205:9103?ipttl=15&latency=3000&mode=caller&payload_size=1456&transtype=live"
+    /// </summary>
     public class FFMpegWorker : BackgroundService, IDisposable
     {
         private readonly ILogger<FFMpegWorker> _logger;
+
         private FFMpegOptions _settings;
         private CancellationTokenSource? _ffmpegProcessorTokenSource;
 
         public FFMpegWorker(ILogger<FFMpegWorker> logger, IOptionsMonitor<FFMpegOptions> settings)
         {
-            _logger = logger;
-            _settings = settings.CurrentValue;
+            this._logger = logger;
+            this._settings = settings.CurrentValue;
+
             settings.OnChange(settings => 
             {
                 _logger.LogInformation("Setting changes detected");
@@ -45,42 +63,6 @@ namespace sdi2srt_ffmpeg.Services
         {
             _ffmpegProcessorTokenSource?.Cancel();
             base.Dispose();
-        }
-
-        private (string fps, string bitrate, string time) FFMpegParseProgress(string line)
-        {
-            string fps = "0 fps";
-            string bitrate = "0 Kbps";
-            string time = "00:00:00";
-            if (line.IndexOf("bitrate=") != -1 && line.IndexOf("fps=") != -1 && line.IndexOf("time=") != -1)
-            {
-                string[] array = line.Split(new char[]
-                {
-                        ' '
-                });
-                for (int i = 0; i < array.Length; i++)
-                {
-                    if (array[i].IndexOf("fps=") != -1)
-                    {
-                        fps = array[i + 1];
-                    }
-                    else if (array[i].IndexOf("bitrate=") != -1)
-                    {
-                        bitrate = array[i].Split(new char[]
-                        {
-                                '='
-                        })[1];
-                    }
-                    else if (array[i].IndexOf("time=") != -1)
-                    {
-                        time = array[i].Split(new char[]
-                        {
-                                '='
-                        })[1];
-                    }
-                }
-            }
-            return (fps, bitrate, time);
         }
 
 
@@ -175,12 +157,15 @@ namespace sdi2srt_ffmpeg.Services
             }
 
 
-            var ffmpegArgs =  fFMpegArguments?.WithGlobalOptions((opt) =>
+            var ffmpegArgs = fFMpegArguments?.WithGlobalOptions((opt) =>
             {
                 opt.WithVerbosityLevel(options.LogLevel);
             })
             .OutputToUrl("\"" + options.Muxer.MpegTS?.Output.ToUri() + "\"", opt =>
             {
+                // progress
+                opt.WithCustomArgument($"-progress \\\\.\\pipe\\{FFMpegProgressListener.FFMpegProgresPipeName}");
+
                 #region 'filter_complex'
                 if (options.FilterComplex.Count > 0)
                 {
@@ -332,6 +317,8 @@ namespace sdi2srt_ffmpeg.Services
                 onError?.Invoke(error);
             });
 
+
+
             return ffmpegArgs;
         }
 
@@ -348,7 +335,36 @@ namespace sdi2srt_ffmpeg.Services
                 _logger.LogInformation("FFMpegWorker.ProcessAsynchronously.Start");
                 try
                 {
-                    var ffmpegProcessor = FFMpegWorker.GetFFMpegArgumentsProcessor(_settings);
+                    var ffmpegProcessor = FFMpegWorker.GetFFMpegArgumentsProcessor(_settings,
+                        #region OnError
+                        error =>
+                        {
+                            try
+                            {
+                                string? id;
+                                string? message;
+
+                                if (FFMpegOutputParser.FFMpegParseSRT(error, out id, out message))
+                                {
+                                    _logger.LogInformation($"SRT[{id}], message: {message}");
+                                }
+                                else if (FFMpegOutputParser.FFMpegParseMpegTS(error, out id, out message))
+                                {
+                                    _logger.LogInformation($"MPEGTS[{id}], message: {message}");
+                                }
+                                else if (FFMpegOutputParser.FFMpegParseDecklink(error, out id, out message))
+                                {
+                                    _logger.LogInformation($"Decklink[{id}], message: {message}");
+                                }
+                            }
+                            catch
+                            {
+                                _logger.LogWarning($"Error parse ffmpeg output: {error}");
+                            }                           
+                        }
+                        #endregion
+                    );
+
                     if (ffmpegProcessor == null)
                     {
                         throw new Exception($"Failed create FFMpeg Arguments Processor");
@@ -372,8 +388,13 @@ namespace sdi2srt_ffmpeg.Services
                 }
 
 
+                // OpenTelemetry metric 
+                FFMpegProgressMeter.FFMpegInstanceRestart.Add(1);
+
                 await Task.Delay(1000, stoppingToken);
             }
+
+            _logger.LogWarning($"FFMpegWorker: stop");
         }
     }
 }

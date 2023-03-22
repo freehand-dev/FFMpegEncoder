@@ -4,7 +4,7 @@ using FFMpegCore.Arguments;
 using FFMpegCore.Extensions;
 using FFMpegCore.Enums;
 using Microsoft.Extensions.Options;
-using sdi2srt_ffmpeg.Models;
+using FFMpegEncoder.Models;
 using System.Threading.Channels;
 using System.Xml.Linq;
 using System.Linq;
@@ -20,7 +20,7 @@ using Microsoft.VisualBasic;
 using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using System.Threading;
 
-namespace sdi2srt_ffmpeg.Services
+namespace FFMpegEncoder.Services
 {
     public class AzureAppConfigRefresher : BackgroundService, IDisposable
     {
@@ -54,6 +54,8 @@ namespace sdi2srt_ffmpeg.Services
                     _logger.LogWarning($" {_refresher.AppConfigurationEndpoint} failed refreshed");
                 }        
             }
+
+            _logger.LogWarning($"AzureAppConfigRefresher: stop");
         }
     }
 }

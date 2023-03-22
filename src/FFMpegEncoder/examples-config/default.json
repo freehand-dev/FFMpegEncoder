@@ -100,7 +100,7 @@
             "Port": 1234,
 			"Options": [
 				{ "Name" : "pkt_size", "Value": 1316 },
-				{ "Name" : "ttl", 	"Value": 15 },
+				{ "Name" : "ttl", 	"Value": 15 }
 			]
           }
         }

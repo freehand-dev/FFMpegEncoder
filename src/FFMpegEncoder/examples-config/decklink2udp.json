@@ -12,19 +12,25 @@
     }
   },
   "ffmpeg": {
-	  "LogLevel": 40,
-	  "Raw": "",
+      "LogLevel": 40,
+      "Raw": "",
       "Input": {
-        "Device": "lavfi",
-        "Name": "smptehdbars=rate=25:size=1920x1080[out0];sine=frequency=1000:sample_rate=48000[out1];sine=frequency=700:sample_rate=48000[out2]",
-		"ReadInputAtNativeFrameRate": true
+        "Device": "decklink",
+        "Name": "DeckLink Duo (4)",
+        "Channels": 8,
+        "Format": "Hi50",
+        "RawFormat": "uyvy422",
+        "VideoInput": "sdi",
+        "AudioInput": "embedded",
+        "DrawBars": false,
+        "QueueSize": 1073741824
       },
-	  "FilterComplex": [
-	    "[0:a:0][0:a:1]join=inputs=2:channel_layout=stereo[ch1]",
-        "[0:a:0][0:a:1]join=inputs=2:channel_layout=stereo[ch2]"
+      "FilterComplex": [
+        "[0:a]channelmap=map=0|1:stereo[ch1]",
+        "[0:a]channelmap=map=2|3:stereo[ch2]"
       ],
       "Maps": [
-        "0:v",		
+        "0:v",
         "[ch1]",
         "[ch2]"
       ],
@@ -33,14 +39,14 @@
           "Codec": "libx264",
           "Bitrate": 8000,
           "Preset": "faster",
-		  "Profile": "high",
-		  "Level": "4.0",
-		  "Flags": [
-			  "+ilme",
-			  "+ildct",
-			  "+cgop"
-		  ],
-		  "CustomArguments": [
+          "Profile": "high",
+          "Level": "4.0",
+          "Flags": [
+            "+ilme",
+            "+ildct",
+            "+cgop"
+          ],
+          "CustomArguments": [
 			{ "Name" : "minrate", 		"Value": "8000k" },
 			{ "Name" : "maxrate", 		"Value": "8000k" },
 			{ "Name" : "bufsize", 		"Value": "700k" },
@@ -48,15 +54,16 @@
 			{ "Name" : "aspect", 		"Value": "16:9" },
 			{ "Name" : "x264-params", 	"Value": "nal-hrd=cbr" },
 			{ "Name" : "top", 			"Value": 1 }
-		  ],
-		{
+		  ]
+        },
+        {
           "Codec": "libfdk_aac",
           "Bitrate": 192,
           "CustomArguments": [
 
           ]
         },
-		{
+        {
           "Codec": "libfdk_aac",
           "Bitrate": 192,
           "CustomArguments": [
@@ -74,36 +81,37 @@
       ],
       "Muxer": {
         "mpegts": {
-		  "TransportStreamId": 1,
-		  "OriginalNetworkId": 1,
-		  "ServiceId": 1,		  
+          "TransportStreamId": 1,
+          "OriginalNetworkId": 1,
+          "ServiceId": 1,
           "StartPid": 336,
-		  "PmtStartPid": 4096,
+          "PmtStartPid": 4096,
           "PcrPeriod": 20,
           "PatPeriod": "0.10",
           "SdtPeriod": "0.25",
-		  "NitPeriod": "0.5",
-		  "MuxRate": 9000,
+          "NitPeriod": "0.5",
+          "MuxRate": 9000,
           "Metadata": {
             "service_provider": "ES",
             "service_name": "OBVan",
-            "title": "BabyBird"
+            "title": "HappyBird"
           },
           "Flags": [
             "+pat_pmt_at_frames",
             "+system_b",
-			"+nit"
+            "+nit"
           ],
-		  "Output": {
+          "Output": {
             "Protocol": "udp",
             "Address": "225.0.0.1",
             "Port": 1234,
 			"Options": [
 				{ "Name" : "pkt_size", "Value": 1316 },
 				{ "Name" : "ttl", 	"Value": 15 },
+				{ "Name" : "localaddr", 	"Value": "10.10.172.45" }
 			]
           }
         }
       }
     }
-}
+  }

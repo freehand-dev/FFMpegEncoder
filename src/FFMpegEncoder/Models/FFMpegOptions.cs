@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Xml;
 
-namespace sdi2srt_ffmpeg.Models
+namespace FFMpegEncoder.Models
 {
     public class FFMpegOptions
     {
