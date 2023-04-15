@@ -147,7 +147,7 @@ IHost host = Host.CreateDefaultBuilder(args)
 
 
         // OpenTelemetry
-        services.AddOpenTelemetryMetrics(builder =>
+        services.AddOpenTelemetry().WithMetrics(builder =>
         {
             builder.SetResourceBuilder(resourceBuilder);
             builder.AddMeter(FFMpegProgressMeter.Meter.Name);
